@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Estourar Balões</title>
+    <style>
+        body {
+            background-color: #6fbafc;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        .balloon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease-in-out;
+            margin: 5px;
+            animation: moveBalloon 4s ease-in-out infinite alternate;
+        }
+        .balloon::after {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background-color: #666;
+            position: absolute;
+            bottom: -20px;
+            left: calc(50% - 2px);
+        }
+        .balloon:hover {
+            transform: scale(1.1);
+            animation-play-state: paused;
+        }
+        .popped {
+            background-color: transparent;
+            border: none;
+            cursor: default;
+            box-shadow: none;
+            animation: popBalloon 0.5s linear forwards;
+        }
+        .popped::after {
+            display: none;
+        }
+        #score, #timer {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        @keyframes moveBalloon {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes popBalloon {
+            0% { transform: scale(1); }
+            100% { transform: scale(0); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo de Estourar Balões</h1>
+    <div id="balloon-container">
+        <!-- Balões serão gerados aqui -->
+    </div>
+    <div id="score">Pontuação: 0</div>
+    <div id="timer">Tempo restante: 01:30</div>
+    
+    <script>
+        const balloonContainer = document.getElementById('balloon-container');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        let score = 0;
+        const totalBalloons = 100;
+        const gameTime = 120; // tempo de jogo em segundos
+        let timeLeft = gameTime;
+        let timerInterval;
+
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createBalloon() {
+            const balloon = document.createElement('div');
+            balloon.className = 'balloon';
+            const balloonScore = getRandomNumber(1, 10); // Pontuação aleatória
+            balloon.dataset.score = balloonScore;
+            const color = `hsl(${getRandomNumber(0, 360)}, 100%, 50%)`; // Cor aleatória
+            balloon.style.backgroundColor = color;
+            balloon.onclick = function() {
+                popBalloon(balloon);
+            };
+            balloonContainer.appendChild(balloon);
+        }
+
+        function popBalloon(balloon) {
+            balloon.classList.add('popped');
+            balloon.onclick = null;
+            score += parseInt(balloon.dataset.score);
+            updateScore();
+            checkGameOver();
+        }
+
+        function updateScore() {
+            scoreDisplay.textContent = 'Pontuação: ' + score;
+        }
+
+        function checkGameOver() {
+            if (score === totalBalloons || timeLeft === 0) {
+                clearInterval(timerInterval);
+                setTimeout(resetGame, 1000);  // Reinicia o jogo após 1 segundo
+            }
+        }
+
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerDisplay.textContent = `Tempo restante: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                checkGameOver();
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            timeLeft = gameTime;
+            updateScore();
+            balloonContainer.innerHTML = '';
+            for (let i = 0; i < totalBalloons; i++) {
+                createBalloon();
+            }
+            timerDisplay.textContent = 'Tempo restante: 02:00';
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Inicializa o jogo
+        for (let i = 0; i < totalBalloons; i++) {
+            createBalloon();
+        }
+        timerInterval = setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
